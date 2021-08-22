@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 
 public class MyArrayList<E> extends AbstractList<E> implements List<E>, Cloneable {
 
+
     private static final int DEFAULT_CAPACITY = 10;
 
 
