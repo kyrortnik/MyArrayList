@@ -10,13 +10,13 @@ public class MyArrayList<E> extends AbstractList<E> implements List<E>, Cloneabl
     private static final Object[] EMPTY_ELEMENTDATA = {};
 
 
-    private static final Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};
-
-
     transient  Object[] elementData;
 
 
     private int size;
+
+
+    private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
 
     public MyArrayList(int initialCapacity) {
@@ -32,7 +32,7 @@ public class MyArrayList<E> extends AbstractList<E> implements List<E>, Cloneabl
 
 
     public MyArrayList() {
-        this.elementData = DEFAULTCAPACITY_EMPTY_ELEMENTDATA;
+        this.elementData = EMPTY_ELEMENTDATA;
     }
 
 
@@ -60,7 +60,7 @@ public class MyArrayList<E> extends AbstractList<E> implements List<E>, Cloneabl
 
 
     private static int calculateCapacity(Object[] elementData, int minCapacity) {
-        if (elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA) {
+        if (elementData == EMPTY_ELEMENTDATA) {
             return Math.max(DEFAULT_CAPACITY, minCapacity);
         }
         return minCapacity;
@@ -72,12 +72,6 @@ public class MyArrayList<E> extends AbstractList<E> implements List<E>, Cloneabl
         if (minCapacity - elementData.length > 0)
             grow(minCapacity);
     }
-
-
-    /**
-     * The maximum size of array to allocate.
-     */
-    private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
 
    private void grow(int minCapacity) {
@@ -223,6 +217,7 @@ public class MyArrayList<E> extends AbstractList<E> implements List<E>, Cloneabl
     /**
      * Method removes an object using fastRemove().
      * */
+
     public boolean remove(Object o){
         if (o == null){
             for (int i = 0;i<size;i++)
@@ -297,8 +292,6 @@ public class MyArrayList<E> extends AbstractList<E> implements List<E>, Cloneabl
 
     public void clear() {
         modCount++;
-
-        // clear to let GC do its work
         for (int i = 0; i < size; i++)
             elementData[i] = null;
 
@@ -341,7 +334,6 @@ public class MyArrayList<E> extends AbstractList<E> implements List<E>, Cloneabl
         System.arraycopy(elementData, toIndex, elementData, fromIndex,
                 numMoved);
 
-        // clear to let GC do its work
         int newSize = size - (toIndex-fromIndex);
         for (int i = newSize; i < size; i++) {
             elementData[i] = null;
@@ -349,6 +341,52 @@ public class MyArrayList<E> extends AbstractList<E> implements List<E>, Cloneabl
         size = newSize;
     }
 
+
+    private class Itr implements Iterator<E> {
+        int cursor;
+        int lastRet = -1;
+        int expectedModCount = modCount;
+
+        Itr() {}
+
+        public boolean hasNext() {
+            return cursor != size;
+        }
+
+        @SuppressWarnings("unchecked")
+        public E next() {
+            checkForComodification();
+            int i = cursor;
+            if (i >= size)
+                throw new NoSuchElementException();
+            Object[] elementData = MyArrayList.this.elementData;
+            if (i >= elementData.length)
+                throw new ConcurrentModificationException();
+            cursor = i + 1;
+            return (E) elementData[lastRet = i];
+        }
+
+        public void remove() {
+            if (lastRet < 0)
+                throw new IllegalStateException();
+            checkForComodification();
+
+            try {
+                MyArrayList.this.remove(lastRet);
+                cursor = lastRet;
+                lastRet = -1;
+                expectedModCount = modCount;
+            } catch (IndexOutOfBoundsException ex) {
+                throw new ConcurrentModificationException();
+            }
+        }
+
+
+        final void checkForComodification() {
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+        }
+    }
 
 
 }
